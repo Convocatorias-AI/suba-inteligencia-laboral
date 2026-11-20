@@ -171,6 +171,9 @@ tr:last-child td{border-bottom:0}
 .footinner{max-width:1080px;display:grid;grid-template-columns:repeat(auto-fit,minmax(236px,1fr));gap:26px}
 .footcol h4{font-family:var(--font-display);font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px}
 .footcol .ulogo{width:150px;margin-bottom:12px}
+.person{margin-bottom:13px}
+.person b{display:block;font-size:13.5px;line-height:1.25}
+.person .rolx{font-size:11.5px;color:var(--muted);margin:2px 0 6px;line-height:1.35}
 .mailrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:7px}
 .mailrow code{font-family:var(--font-body);font-size:12.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;user-select:all;word-break:break-all}
 .mailrow code.pend{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 34%,transparent);color:var(--warn)}
@@ -1447,16 +1450,14 @@ function pintarTablero(){
 /* ============ CONTACTOS DEL PIE ============ */
 /* Para cambiar un correo, edite solo esta lista. */
 var CONTACTOS = [
-  {rol:'Coordinación', mail:'felipe.upeguim@gmail.com'},
-  {rol:'Equipo técnico', mail:'', pend:'correo de Cristhian pendiente'}
+  {nom:'Cristhian Fabián Ruiz Ramos', rol:'Director de Desarrollo · Director UR-STEAM', mail:'cristhian.ruiz@urosario.edu.co'},
+  {nom:'Sebastián Upegui', rol:'Gestor IA, Dirección de Desarrollo · UR-STEAM', mail:'proyectosic@urosario.edu.co'}
 ];
 (function pintarContactos(){
   $('contactos').innerHTML = CONTACTOS.map(function(c,i){
-    return '<div class="mailrow"><span class="meta" style="min-width:92px">'+esc(c.rol)+'</span>'
-      + (c.mail
-          ? '<code id="mail'+i+'">'+esc(c.mail)+'</code><button class="copybtn" data-copy="'+esc(c.mail)+'" data-for="mail'+i+'">Copiar</button>'
-          : '<code class="pend">'+esc(c.pend)+'</code>')
-      + '</div>';
+    return '<div class="person"><b>'+esc(c.nom)+'</b><div class="rolx">'+esc(c.rol)+'</div>'
+      + '<div class="mailrow"><code id="mail'+i+'">'+esc(c.mail)+'</code>'
+      + '<button class="copybtn" data-copy="'+esc(c.mail)+'" data-for="mail'+i+'">Copiar</button></div></div>';
   }).join('');
   Array.prototype.forEach.call($('contactos').querySelectorAll('.copybtn'), function(b){
     b.addEventListener('click', function(){
