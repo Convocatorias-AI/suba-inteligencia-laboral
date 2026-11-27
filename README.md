@@ -8,6 +8,13 @@ convocatoria **Cities Deliver: AI Solutions for Public Services**.
 
 Una sola página HTML, sin dependencias de servidor, que recorre el flujo de SUBA Inteligencia Laboral:
 
+**Caso guiado de Marta.** Para entender el proceso con una persona, el menú abre con un caso paso a paso: una empresa de Suba
+registra una vacante de auxiliar administrativa, Marta sube su hoja de vida, la IA detecta que solo le falta Power BI, le arma
+un curso validado por la Universidad del Rosario, actualiza su perfil, envía su hoja de vida con consejos de entrevista y la
+empresa la contrata. Cada paso abre la pantalla real del agente que actúa.
+
+Además, el prototipo recorre:
+
 1. registro de personas y empresas con consentimiento (Ley 1581 de 2012) y repositorio único de cuatro fuentes,
    normalizadas con ESCO y CUOC (PostgreSQL con pgvector y almacenamiento de objetos);
 2. orquestador multiagente de los agentes 1 a 6, con base de conocimiento RAG que cita sus fuentes y trazabilidad de cada decisión;

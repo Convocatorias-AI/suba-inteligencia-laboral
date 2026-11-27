@@ -224,6 +224,7 @@ tr:last-child td{border-bottom:0}
     <nav class="navgroup" aria-label="Secciones">
       <div class="navlabel">Panorama</div>
       <button class="navbtn" data-go="inicio"><span class="k">◇</span>Inicio del recorrido</button>
+      <button class="navbtn" data-go="caso"><span class="k">★</span>Caso guiado: Marta</button>
       <button class="navbtn" data-go="arquitectura"><span class="k">⬡</span>Arquitectura y flujo</button>
       <div class="navlabel" style="margin-top:10px">1 · Registro e integración</div>
       <button class="navbtn" data-go="registro"><span class="k">⇢</span>Registro y cuatro fuentes</button>
@@ -270,6 +271,7 @@ tr:last-child td{border-bottom:0}
         <p class="lede">SUBA Inteligencia Laboral combina agentes de inteligencia artificial con supervisión humana. Este prototipo recorre el flujo completo: registro e integración de datos, orquestación de los agentes 1 a 6 con una base de conocimiento que cita sus fuentes, análisis de mercado y de talento, coincidencias explicables, tres decisiones que asignan una de cuatro rutas, seguimiento con retroalimentación y un tablero de impacto que alimenta la Fase III. Los datos son sintéticos y las respuestas de los agentes son simuladas.</p>
       </div>
       <div class="stack">
+        <div class="note brand" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:240px"><b>¿Primera vez aquí?</b> Siga el caso de Marta: una empresa de Suba registra una vacante, Marta sube su hoja de vida, la IA detecta que solo le falta Power BI, le arma un curso validado por la Universidad del Rosario y la empresa termina contratándola.</div><button class="btn primary" data-go2="caso">Ver el caso de Marta</button></div>
         <div class="grid4" id="resumen"></div>
         <div class="card">
           <div class="hd"><h3>Cómo recorrerlo en la demostración</h3><span class="meta">≈ 8 minutos · siga el orden del menú</span></div>
@@ -293,6 +295,24 @@ tr:last-child td{border-bottom:0}
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- CASO GUIADO: MARTA -->
+    <section class="view" id="v-caso" hidden>
+      <div class="vhead">
+        <p class="eyebrow">Caso guiado · una persona de principio a fin</p>
+        <h2>Marta: de la vacante de una empresa de Suba a su contratación</h2>
+        <p class="lede">Una empresa de Suba registra su necesidad en el portal: una auxiliar administrativa que organice información y elabore informes. Marta, secretaria con ocho años de experiencia en una notaría, se registra y sube su hoja de vida. Ejecute cada paso para ver qué hace la IA, dónde interviene una persona y cómo el resultado vuelve al sistema. Cada paso abre la pantalla real del agente que actúa.</p>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="hd"><h3>Recorrido de Marta</h3><span class="meta" id="casoMeta"></span>
+            <span class="agentbar" style="margin-left:auto"><span class="dot" id="dCaso"></span><span id="sCaso">en espera</span></span>
+            <button class="btn sm" id="btnCasoReset">Reiniciar el caso</button></div>
+          <div class="bd"><p class="hint">La vacante la aporta la empresa; la experiencia, incluidas las tareas informales, la aporta Marta. Datos sintéticos; las salidas de la IA son simuladas.</p></div>
+        </div>
+        <div class="stack" id="casoPasos"></div>
       </div>
     </section>
 
@@ -1480,7 +1500,10 @@ var C = {
   alimentos:{n:'Manipulación de alimentos',t:'certificacion'},
   limpieza:{n:'Protocolos de limpieza y desinfección',t:'practica'},
   cocina:{n:'Preparación de alimentos',t:'practica'},
-  bpm:{n:'Buenas prácticas de manufactura',t:'certificacion'}
+  bpm:{n:'Buenas prácticas de manufactura',t:'certificacion'},
+  archivo:{n:'Gestión documental y archivo',t:'digital'},
+  informes:{n:'Elaboración de informes',t:'digital'},
+  powerbi:{n:'Power BI para informes',t:'digital'}
 };
 var NIV = {1:'básico',2:'intermedio',3:'avanzado'};
 /* Familias de competencias: aproximan la vecindad semántica que en la solución calcula pgvector. */
@@ -1489,7 +1512,8 @@ var FAMILIA = {
   'servicio y ventas':['servicio','crm','ingles','caja','ventas','comunicacion'],
   'confección':['plana','fileteadora','calidad','costos','liderazgo'],
   'tecnología':['redes','ticketing','sql','python','nube','ofimatica'],
-  'cuidado y alimentos':['cuidado','primeros','alimentos','limpieza','cocina','bpm']
+  'cuidado y alimentos':['cuidado','primeros','alimentos','limpieza','cocina','bpm'],
+  'administración':['archivo','informes','powerbi']
 };
 function familia(id){ for(var f in FAMILIA){ if(FAMILIA[f].indexOf(id) >= 0) return f; } return null; }
 
@@ -1561,7 +1585,8 @@ var OCUP = {
   'Técnico de soporte nivel 2':{esco:'Técnico de soporte de TIC',cuoc:'Técnicos de soporte a usuarios de TIC'},
   'Auxiliar de cuidado domiciliario':{esco:'Cuidador a domicilio',cuoc:'Trabajadores de cuidados personales a domicilio'},
   'Auxiliar de cocina':{esco:'Ayudante de cocina',cuoc:'Ayudantes de cocina'},
-  'Auxiliar de servicios generales':{esco:'Personal de limpieza',cuoc:'Aseadores y ayudantes de limpieza'}
+  'Auxiliar de servicios generales':{esco:'Personal de limpieza',cuoc:'Aseadores y ayudantes de limpieza'},
+  'Auxiliar administrativa':{esco:'Auxiliar administrativo',cuoc:'Auxiliares administrativos generales'}
 };
 
 /* ============ OFERTA DE FORMACIÓN Y SERVICIOS (sintética) ============
@@ -1595,9 +1620,24 @@ var PROGRAMAS = {
   cocina:{n:'Preparación de alimentos en cocina institucional',ent:'SENA · aliado del sector gastronómico',mod:'Práctica en cocina',h:80,sem:8},
   comunicacion:{n:'Comunicación asertiva en el trabajo',ent:'Microcontenido propio del servicio',mod:'Digital con ejercicios',h:6},
   empaque:{n:'Empaque, alistamiento y rotulado',ent:'Aliado logístico del territorio',mod:'Práctica supervisada',h:40,sem:5},
-  bodega:{n:'Operación de bodega',ent:'Aliado logístico del territorio',mod:'Práctica supervisada',h:60,sem:6}
+  bodega:{n:'Operación de bodega',ent:'Aliado logístico del territorio',mod:'Práctica supervisada',h:60,sem:6},
+  archivo:{n:'Gestión documental y archivo',ent:'Microcontenido propio del servicio',mod:'Digital con ejercicios',h:10},
+  informes:{n:'Elaboración de informes de gestión',ent:'Microcontenido propio del servicio',mod:'Digital con plantillas',h:10},
+  powerbi:{n:'Power BI para informes administrativos',ent:'Microcontenido del servicio validado por la Universidad del Rosario',mod:'Digital con ejercicios sobre datos reales de una empresa',h:16}
 };
 var SERVICIOS_EMPLEO = ['Agencia Pública de Empleo del SENA','Casa de la Juventud de Suba','Manzana del Cuidado de Suba','Operadores de empleo del territorio'];
+
+/* ============ CASO GUIADO: MARTA (entra al sistema durante el recorrido) ============ */
+var AVISO_MARTA = 'Comercializadora Niza Norte S.A.S., empresa de Suba (UPZ Niza), busca AUXILIAR ADMINISTRATIVA para organizar la información de la empresa y elaborar informes semanales de ventas y cartera. Mínimo 2 años de experiencia en labores administrativas, gestión documental y archivo. Indispensable Excel intermedio; se requiere manejo de Power BI para los informes. Técnico en áreas administrativas. Salario 1.900.000 más prestaciones. Publicación vigente 15 días.';
+var VAC_MARTA = {id:'v12',cargo:'Auxiliar administrativa',emp:'Comercializadora Niza Norte S.A.S.',sector:'Servicios administrativos',upz:'Niza',sal:1900000,expM:24,esc:'Técnico',vig:15,fuente:'Registrada por la empresa en el portal',
+  req:[{id:'archivo',niv:2,p:3},{id:'informes',niv:2,p:3},{id:'excel',niv:2,p:3},{id:'powerbi',niv:1,p:3},{id:'ofimatica',niv:2,p:2},{id:'comunicacion',niv:2,p:1}]};
+var COMPS_MARTA = [{id:'archivo',niv:3,ev:'verificada'},{id:'informes',niv:2,ev:'verificada'},{id:'ofimatica',niv:3,ev:'verificada'},{id:'excel',niv:2,ev:'declarada'},{id:'comunicacion',niv:2,ev:'verificada'},{id:'servicio',niv:2,ev:'verificada'}];
+var MARTA = {id:'p7',nom:'Marta Lucía Herrera Cifuentes',ed:39,upz:'Britalia',esc:'Técnico',expM:96,busca:'Auxiliar o asistente administrativa',
+  rel:'8 años como secretaria en una notaría: radicación, archivo, atención al público e informes mensuales',
+  informal:'Lleva las cuentas y el archivo de la tienda de su familia y redacta las actas de la junta de acción comunal',
+  interes:'Trabajo administrativo y organización de información; empleo cerca de su casa',
+  comps:COMPS_MARTA.map(function(c){return {id:c.id,niv:c.niv,ev:c.ev}}),
+  barreras:['Nunca ha usado herramientas de visualización de datos','Busca un empleo más cerca de su casa para reducir tiempos de traslado']};
 
 /* ============ BASE DE CONOCIMIENTO (RAG) ============ */
 var FUENTES = [
@@ -1789,7 +1829,7 @@ function enlazar(cont){
 }
 
 /* ============ NAVEGACIÓN ============ */
-var VISTAS = ['inicio','arquitectura','registro','orquestador','mercado','perfil','brechas','ruta','acompanamiento','aprendizaje','productivo','externa','seguimiento','empleador','copiloto','territorio','tablero'];
+var VISTAS = ['inicio','caso','arquitectura','registro','orquestador','mercado','perfil','brechas','ruta','acompanamiento','aprendizaje','productivo','externa','seguimiento','empleador','copiloto','territorio','tablero'];
 var PINTAR = {};
 function ir(v){
   if(VISTAS.indexOf(v) < 0) v = 'inicio';
@@ -1855,6 +1895,7 @@ PINTAR.inicio = function(){
   ].map(function(p,i){
     return '<div class="step"><span class="n">'+(i+1)+'</span><div><b>'+p[0]+'</b><div class="meta">'+p[1]+'</div></div></div>';
   }).join('');
+  enlazar($('v-inicio'));
   $('inicioRutas').innerHTML = ORDEN_RUTAS.map(function(k){
     var quien = PERSONAS.filter(function(p){ return enrutar(p).ruta===k }).map(nombre2);
     return '<div class="ruta '+k+'"><h4>Ruta '+k+' · '+RUTAS[k].t+' <span class="meta" style="font-family:var(--font-body);font-weight:500">· '+RUTAS[k].ag+'</span></h4>'
@@ -1962,6 +2003,7 @@ $('btnRag').addEventListener('click', function(){
 
 /* ============ AGENTE 1 ============ */
 var AVISOS = [
+ {k:'Administrativo',t:AVISO_MARTA},
  {k:'Logística',t:'SE BUSCA AUXILIAR DE BODEGA para empresa de distribución en Guaymaral, Suba. Mínimo 1 año de experiencia en bodega manejando inventarios. Indispensable saber Excel y que haya trabajado con lector de radiofrecuencia o sistema WMS. Bachiller culminado. Salario 1.623.500 más auxilio de transporte y todas las prestaciones. Turnos rotativos de lunes a sábado. Contrato obra labor. Publicación vigente 15 días.'},
  {k:'Contact center',t:'Vacante: asesor de servicio al cliente, zona Niza. Buscamos personas con actitud, excelente comunicación y experiencia mínima de 6 meses en atención al usuario. Deseable manejo de CRM y herramientas de office. Ofrecemos 1.500.000 + comisiones, capacitación paga. No requiere experiencia en call center. Bachillerato completo.'},
  {k:'Confección',t:'Taller de confección en El Rincón requiere OPERARIA DE MAQUINA PLANA con experiencia mínima de dos años en prenda terminada. Se valora manejo de fileteadora y conocimiento de control de calidad. Pago por producción, promedio 1.500.000. Horario de lunes a viernes y sábado medio día.'},
@@ -1978,6 +2020,7 @@ var AVISOS = [
   $('btnAnalizar').addEventListener('click', interpretar);
 })();
 var DICC_CARGO = [
+  [/auxiliar administrativ|asistente administrativ/i,'Auxiliar administrativa','Servicios administrativos'],
   [/montacarg/i,'Operario logístico con montacargas','Transporte y logística'],
   [/bodeg|almacen/i,'Auxiliar de bodega','Transporte y logística'],
   [/call center|contact|servicio al cliente|asesor de servicio|atenci[oó]n al usuario/i,'Asesor de servicio al cliente','Servicios empresariales'],
@@ -2002,7 +2045,8 @@ var DICC_COMP = {
   sql:/sql|base de datos/i, python:/python/i, nube:/nube|cloud|aws|azure/i,
   cuidado:/cuidado de|cuidando|adulto mayor|persona mayor/i, primeros:/primeros auxilios/i,
   alimentos:/manipulaci[oó]n de alimentos/i, limpieza:/desinfecci[oó]n|aseo|limpieza/i,
-  cocina:/cocina|preparaci[oó]n de alimentos/i, bpm:/bpm|buenas pr[aá]cticas/i
+  cocina:/cocina|preparaci[oó]n de alimentos/i, bpm:/bpm|buenas pr[aá]cticas/i,
+  archivo:/archivo|gesti[oó]n documental|organizar (la )?informaci/i, informes:/informe|reporte/i, powerbi:/power ?bi/i
 };
 function interpretar(){
   var txt = $('vtexto').value || '';
@@ -2263,6 +2307,8 @@ PINTAR.acompanamiento = function(){
     if(p.comps.some(function(c){return c.ev==='declarada'})) h += '<div class="meta">· Adjuntar soporte de lo declarado o marcarlo como experiencia no certificada.</div>';
     if(e.cursosFin) h += '<div class="meta">· Incluir el curso terminado en la Ruta B, con su evaluación.</div>';
     h += '</div>';
+    h += '<hr class="sep"><p class="eyebrow" style="margin-bottom:8px">Consejos para la entrevista · según el análisis de su perfil</p><div class="stack" style="gap:8px">'
+      + consejosEntrevista(p, vac, ev).map(function(c){ return '<div class="meta">· '+c+'</div>' }).join('') + '</div>';
     $('cvBox').innerHTML = h;
     escribir($('cvOut'), resumen);
     pintarPostulacion(vac);
@@ -2274,6 +2320,16 @@ PINTAR.acompanamiento = function(){
     $('d5').className = 'dot live'; $('s5').textContent = 'pregunta 1 de 3';
   }
 };
+function consejosEntrevista(p, vac, ev){
+  var c = [], fuerte = ev.tiene.slice().sort(function(a,b){return b.p-a.p})[0];
+  var top = vac.req.slice().sort(function(a,b){return b.p-a.p}).slice(0,2);
+  if(fuerte) c.push('Abra con su mayor fortaleza para este cargo: '+esc(C[fuerte.id].n.toLowerCase())+', y respáldela con un ejemplo concreto de su trayectoria ('+esc(p.rel.split(':')[0].split(',')[0].toLowerCase())+').');
+  c.push('La empresa le dará más peso a '+top.map(function(r){return esc(C[r.id].n.toLowerCase())}).join(' y ')+': prepare una situación concreta, con un resultado medible, para cada una.');
+  if(p.informal) c.push('Cuente también su experiencia informal ('+esc(p.informal.charAt(0).toLowerCase()+p.informal.slice(1))+'): demuestra las mismas capacidades que pide la vacante.');
+  if(est(p).cursosFin) c.push('Mencione el curso que acaba de terminar y lleve un ejemplo de lo que hizo en él; muestra que cierra sus brechas con rapidez.');
+  if(p.barreras && p.barreras.length) c.push('Si surge el tema, plantee con tranquilidad: '+esc(p.barreras[p.barreras.length-1].charAt(0).toLowerCase()+p.barreras[p.barreras.length-1].slice(1))+'.');
+  return c;
+}
 function pintarPostulacion(vac){
   var p = S.persona, e = est(p), h = '';
   if(e.postulado){
@@ -2329,6 +2385,17 @@ $('btnResp').addEventListener('click', function(){
 $('btnReset').addEventListener('click', function(){ S.chatPaso = 0; PINTAR.acompanamiento(); });
 
 /* ============ RUTA B · AGENTE 4 ============ */
+function terminarCurso(p, r, tot){
+  /* Al terminar el curso, el perfil se actualiza automáticamente y la persona vuelve al acompañamiento laboral. */
+  var e = est(p);
+  r.e.faltan.forEach(function(f){
+    var mine = p.comps.filter(function(c){return c.id===f.id})[0];
+    if(mine){ mine.niv = Math.max(mine.niv, f.req); mine.ev = 'verificada'; } else p.comps.push({id:f.id, niv:f.req, ev:'verificada'});
+  });
+  e.curso.fin = true; e.cursosFin++;
+  e.historial.push('Curso de '+tot+' h terminado');
+  traza('Agente 4', 'Finalización del curso', 'Competencias verificadas: '+esc(nombres(r.e.faltan))+' · perfil actualizado · vuelve al acompañamiento laboral', '—', ['F4']);
+}
 function disenarCurso(e){
   var mods = e.faltan.map(function(f){ var pr = PROGRAMAS[f.id]; return {id:f.id, n:pr.n, mod:pr.mod, h:pr.h, f:f} });
   var tot = mods.reduce(function(a,m){return a+m.h},0);
@@ -2362,7 +2429,7 @@ PINTAR.aprendizaje = function(){
     var ok = !!e.curso.ok[m.id];
     h += '<div class="step'+(ok?' on':'')+'"><span class="n">'+(i+1)+'</span><div><b>'+esc(m.n)+'</b>'
       + '<div class="meta">'+esc(m.mod)+' · '+m.h+' h'+(m.f?' · cierra «'+esc(C[m.f.id].n)+'» ('+(m.f.parcial?'de '+NIV[m.f.actual]+' a '+NIV[m.f.req]:'nivel '+NIV[m.f.req])+')':'')+'</div>'
-      + '<label class="row" style="gap:6px;margin-top:5px;font-size:12.5px"><input type="checkbox" data-mod="'+m.id+'"'+(ok?' checked':'')+(e.curso.aprobado?' disabled':'')+'> Módulo revisado por la curaduría humana</label></div></div>';
+      + '<label class="row" style="gap:6px;margin-top:5px;font-size:12.5px"><input type="checkbox" data-mod="'+m.id+'"'+(ok?' checked':'')+(e.curso.aprobado?' disabled':'')+'> Módulo revisado por la curaduría humana (Universidad del Rosario)</label></div></div>';
   });
   h += '</div>';
   var todos = mods.every(function(m){return e.curso.ok[m.id]});
@@ -2384,13 +2451,7 @@ PINTAR.aprendizaje = function(){
     PINTAR.aprendizaje();
   });
   if($('btnTerminar')) $('btnTerminar').addEventListener('click', function(){
-    r.e.faltan.forEach(function(f){
-      var mine = p.comps.filter(function(c){return c.id===f.id})[0];
-      if(mine){ mine.niv = Math.max(mine.niv, f.req); mine.ev = 'verificada'; } else p.comps.push({id:f.id, niv:f.req, ev:'verificada'});
-    });
-    e.curso.fin = true; e.cursosFin++;
-    e.historial.push('Curso de '+tot+' h terminado');
-    traza('Agente 4', 'Finalización del curso', 'Competencias verificadas: '+esc(nombres(r.e.faltan))+' · vuelve al acompañamiento laboral', '—', ['F4']);
+    terminarCurso(p, r, tot);
     marcarRuta();
     PINTAR.aprendizaje();
   });
@@ -2557,7 +2618,7 @@ PINTAR.seguimiento = function(){
 };
 
 /* ============ PANEL DEL EMPLEADOR ============ */
-var SECTORES = ['Transporte y logística','Comercio','Servicios empresariales','Industria manufacturera','Tecnología','Salud y cuidado','Alojamiento y alimentación','Educación'];
+var SECTORES = ['Servicios administrativos','Transporte y logística','Comercio','Servicios empresariales','Industria manufacturera','Tecnología','Salud y cuidado','Alojamiento y alimentación','Educación'];
 var MOTIVOS = ['Perfil no corresponde al cargo','Experiencia insuficiente','Falta certificación obligatoria','Disponibilidad de horario','Vacante ya cubierta'];
 S.empresa = null; S.empVac = null; S.dec = {}; S.log = []; S.pend = null;
 function empresas(){ var o = []; VACANTES.forEach(function(v){ if(o.indexOf(v.emp) < 0) o.push(v.emp) }); return o; }
@@ -2922,6 +2983,147 @@ var CONTACTOS = [
     });
   });
 })();
+
+
+/* ============ CASO GUIADO: MOTOR DE PASOS ============ */
+S.caso = 0;
+function activar(p){ S.persona = p; llenarPersonas(); $('av').textContent = iniciales(p.nom); }
+function enSistema(x, lista){ return lista.indexOf(x) >= 0 }
+var CASO = [
+  {quien:'Empresa · Portal y Agente 1', t:'La empresa registra su necesidad en el portal web',
+   d:'Comercializadora Niza Norte necesita una auxiliar administrativa que organice la información y elabore informes. El Agente 1 interpreta la vacante y extrae las competencias demandadas.',
+   hacer:function(){
+     if(!enSistema(VAC_MARTA, VACANTES)) VACANTES.push(VAC_MARTA);
+     traza('Portal y ETL', 'Registro de empresa y vacante', 'Comercializadora Niza Norte S.A.S. · normalización con ESCO y CUOC', '—', ['F5','F2','F3']);
+     $('vtexto').value = AVISO_MARTA; mostrarVacante(AVISO_MARTA);
+   },
+   res:function(){ var o = OCUP[VAC_MARTA.cargo];
+     return '<p class="meta" style="font-style:italic">«'+esc(AVISO_MARTA)+'»</p><div class="row" style="margin-top:8px">'
+       + VAC_MARTA.req.map(function(r){return '<span class="chip acc">'+esc(C[r.id].n)+' · '+NIV[r.niv]+'</span>'}).join('')
+       + '</div><p class="meta" style="margin-top:6px">Ocupación ESCO: '+esc(o.esco)+' · Grupo CUOC: '+esc(o.cuoc)+' · modelo: GPT-6 Luna</p>'; },
+   ver:'mercado', verT:'Ver en el Agente 1'},
+  {quien:'Marta · Portal y Agente 2', t:'Marta se registra y sube su hoja de vida',
+   d:'Marta es secretaria, con ocho años de experiencia en una notaría. Autoriza el tratamiento de sus datos (Ley 1581 de 2012). La vacante la aporta la empresa; la experiencia, incluidas sus tareas informales, la aporta Marta.',
+   hacer:function(){
+     if(!enSistema(MARTA, PERSONAS)) PERSONAS.push(MARTA);
+     activar(MARTA);
+     traza('Portal y ETL', 'Registro de persona con consentimiento', 'Marta · hoja de vida en almacenamiento de objetos', '—', ['F5']);
+     S.vistos['a2'+MARTA.id] = 1;
+     traza('Agente 2', 'Caracterización del perfil', 'Experiencia formal en notaría y experiencia informal · '+MARTA.comps.length+' competencias', 'GPT-6 Luna', ['F2','F3']);
+   },
+   res:function(){
+     return '<dl class="kv"><dt>Experiencia formal</dt><dd>'+esc(MARTA.rel)+'</dd><dt>Experiencia informal</dt><dd>'+esc(MARTA.informal)+'</dd><dt>Intereses</dt><dd>'+esc(MARTA.interes)+'</dd></dl>'
+       + '<div class="row" style="margin-top:8px">'+COMPS_MARTA.map(function(c){return '<span class="chip '+(c.ev==='verificada'?'ok':'gap')+'">'+esc(C[c.id].n)+' · '+NIV[c.niv]+'</span>'}).join('')+'</div>'
+       + '<p class="meta" style="margin-top:6px">Modelo: GPT-6 Luna. Su hoja de vida no está entre el 10 % más difícil, así que no necesita GPT-6.1 Terra.</p>'; },
+   ver:'perfil', verT:'Ver en el Agente 2'},
+  {quien:'Agente 3', t:'La IA compara el perfil con la vacante y explica el resultado',
+   d:'El motor de coincidencias combina similitud semántica y reglas explícitas. Marta coincide en casi todo, excepto en el uso de Power BI.',
+   hacer:function(){ S.vacanteSel = VAC_MARTA.id; S.vistos['a3'+MARTA.id] = 1;
+     var e = evaluar(MARTA, VAC_MARTA);
+     traza('Agente 3', 'Comparación con la vacante', 'Auxiliar administrativa · ajuste '+pct(e.score)+' · falta: '+nombres(e.faltan), 'pgvector + reglas', ['F1','F2']); },
+   res:function(){ var e = evaluar(MARTA, VAC_MARTA), f = S.caso > 5 ? 'Al momento de la comparación faltaba Power BI; hoy ya está verificada.' : 'Le falta Power BI, que la vacante pide para los informes.';
+     return '<div class="row" style="justify-content:space-between"><b>Puntaje explicable</b><b class="num">'+pct(e.score)+'</b></div><div class="bar" style="margin:5px 0 9px"><i style="width:'+(e.score*100)+'%"></i></div>'
+       + '<p class="meta">Similitud semántica '+pct(e.sem)+' · reglas explícitas '+pct(e.reglas)+'.</p><div class="row" style="margin-top:6px">'
+       + e.tiene.map(function(t){return '<span class="chip ok">✓ '+esc(C[t.id].n)+'</span>'}).join('')
+       + e.faltan.map(function(x){return '<span class="chip gap">+ '+esc(C[x.id].n)+'</span>'}).join('') + '</div>'
+       + '<p class="meta" style="margin-top:6px">Explicación: cumple gestión documental, informes, Excel, ofimática y comunicación. '+f+' El orientador puede revisar y corregir este resultado.</p>'; },
+   ver:'brechas', verT:'Ver en el Agente 3'},
+  {quien:'Orquestador', t:'Tres decisiones asignan la ruta: Ruta B, microaprendizaje',
+   d:'¿Hay coincidencia sin brechas? No: falta Power BI. ¿La brecha se cierra con formación corta? Sí: Power BI se aprende en un curso corto. Marta va a la Ruta B.',
+   hacer:function(){ var r = enrutar(MARTA); S.vistos['ruta'+MARTA.id+r.ruta] = 1;
+     traza('Orquestador', 'Decisión y enrutamiento', r.d.map(function(x){return x.si?'SÍ':'NO'}).join(' → ')+' → Ruta '+r.ruta, '—', ['F1','F4']); },
+   res:function(){
+     return '<div class="meta" style="margin-bottom:4px"><b>Decisión 1 · ¿Hay coincidencia con una vacante?</b> <span class="chip gap">NO</span> Falta Power BI frente a la vacante de auxiliar administrativa.</div>'
+       + '<div class="meta" style="margin-bottom:4px"><b>Decisión 2 · ¿La brecha se cierra con formación corta?</b> <span class="chip ok">SÍ</span> Power BI es una competencia digital que se cierra en un curso corto.</div>'
+       + '<div class="chip gap" style="margin-top:4px">Ruta B · Microaprendizaje</div>'; },
+   ver:'ruta', verT:'Ver la decisión de ruta'},
+  {quien:'Agente 4 · Universidad del Rosario', t:'La IA genera una formación a la medida, validada por la Universidad del Rosario',
+   d:'El Agente 4 diseña un curso de 20 horas centrado en Power BI para informes administrativos. La curaduría de la Universidad del Rosario revisa y aprueba cada módulo antes de asignarlo.',
+   hacer:function(){ var r = enrutar(MARTA), e = est(MARTA), mods = disenarCurso(r.e), tot = mods.reduce(function(a,m){return a+m.h},0);
+     e.curso = {vac:r.e.vac.id, ok:{}, aprobado:true, fin:false}; mods.forEach(function(m){ e.curso.ok[m.id] = true });
+     traza('Agente 4', 'Diseño de curso a la medida', mods.length+' módulos · '+tot+' h · Power BI', '—', ['F4']);
+     traza('Universidad del Rosario', 'Validación del curso (curaduría)', mods.length+' módulos revisados y aprobados', '—', [], true); },
+   res:function(){ var mods = disenarCurso({faltan:[{id:'powerbi',req:1,actual:0,p:3,parcial:false}]});
+     return mods.map(function(m){ return '<div class="meta">· <b>'+esc(m.n)+'</b> · '+esc(m.mod)+' · '+m.h+' h</div>' }).join('')
+       + '<div class="chip ok" style="margin-top:6px">Validado por la Universidad del Rosario</div>'; },
+   ver:'aprendizaje', verT:'Ver en el Agente 4'},
+  {quien:'Agente 4 · Agente 2', t:'Marta termina el curso y su perfil se actualiza automáticamente',
+   d:'Al aprobar la evaluación final, Power BI queda como competencia verificada en su hoja de vida. El orquestador recalcula: ya no hay brechas y Marta vuelve al acompañamiento laboral (Ruta A).',
+   hacer:function(){ var r = enrutar(MARTA), tot = disenarCurso(r.e).reduce(function(a,m){return a+m.h},0);
+     terminarCurso(MARTA, r, tot);
+     traza('Agente 2', 'Actualización automática del perfil', 'Power BI verificada al cierre del curso', 'GPT-6 Luna', ['F4']); },
+   res:function(){ var e = evaluar(MARTA, VAC_MARTA);
+     return '<p class="meta">Nuevo ajuste con auxiliar administrativa: <b class="num">'+pct(e.score)+'</b>, sin brechas. Ruta asignada ahora: <span class="chip ok">Ruta A · Preparación y postulación</span></p>'; },
+   ver:'perfil', verT:'Ver el perfil actualizado'},
+  {quien:'Agente 5 · Orientador', t:'La IA envía su hoja de vida y le da consejos para la entrevista',
+   d:'El Agente 5 orienta la hoja de vida con el lenguaje de la vacante y prepara consejos de entrevista a partir del análisis de su perfil. El orientador valida, Marta autoriza la remisión y la hoja de vida se envía a la empresa.',
+   hacer:function(){ var e = est(MARTA);
+     e.validado = true; traza('Orientador', 'Validación de hoja de vida y postulación', 'Auxiliar administrativa · Comercializadora Niza Norte', '—', [], true);
+     e.autoriza = true; traza('Persona', 'Autorización de remisión', 'Comercializadora Niza Norte S.A.S.', '—', ['F5'], true);
+     e.postulado = VAC_MARTA.id; e.contratado = null; e.historial.push('Postulada a '+VAC_MARTA.cargo);
+     traza('Agente 5', 'Envío de la hoja de vida y consejos de entrevista', 'Auxiliar administrativa · Comercializadora Niza Norte', '—', ['F1']); },
+   res:function(){ var ev = evaluar(MARTA, VAC_MARTA);
+     return '<p class="eyebrow" style="margin-bottom:6px">Consejos para la entrevista</p>' + consejosEntrevista(MARTA, VAC_MARTA, ev).map(function(c){return '<div class="meta">· '+c+'</div>'}).join(''); },
+   ver:'acompanamiento', verT:'Ver en el Agente 5'},
+  {quien:'Empresa · Equipo', t:'La empresa recibe una candidata idónea y decide contratar a Marta',
+   d:'La empresa ve el perfil explicado de Marta, la entrevista y decide contratarla. El equipo registra el proceso de selección y confirma la contratación. Si no la hubieran contratado, Marta volvería al Agente 3 para seguir la búsqueda con información actualizada.',
+   hacer:function(){ var e = est(MARTA), key = VAC_MARTA.id+'|'+MARTA.id;
+     S.dec[key] = {e:'entrevista', m:null};
+     S.log.unshift({c:codigo(MARTA), v:VAC_MARTA.cargo, e:'entrevista', m:null, l:'Confirma la pertinencia de la coincidencia. El equipo registra el proceso de selección.'});
+     traza('Empleador', 'Solicitud de entrevista', codigo(MARTA)+' · Auxiliar administrativa', '—', [], true);
+     e.contratado = true; e.historial.push('Contratada');
+     traza('Equipo', 'Confirmación de contratación', 'Marta · Comercializadora Niza Norte S.A.S.', '—', ['F1'], true); },
+   res:function(){ return '<div class="chip ok">Contratación confirmada</div><p class="meta" style="margin-top:6px">Empieza el seguimiento de permanencia a 1, 3 y 6 meses.</p>'; },
+   ver:'seguimiento', verT:'Ver contratación y permanencia'},
+  {quien:'Orquestador · base de datos final', t:'La IA registra el resultado y lo usa para mejorar todo el proceso',
+   d:'La contratación queda en la base de datos final, con trazabilidad completa, y vuelve al sistema como aprendizaje.',
+   hacer:function(){
+     traza('Orquestador', 'Retroalimentación al proceso', 'Contratación de Marta: refuerza reglas del Agente 3, el curso del Agente 4, el análisis del Agente 8 y el tablero de impacto', '—', ['F1','F4']); },
+   res:function(){ return ['<b>Agente 3:</b> una coincidencia que terminó en contratación refuerza las reglas y los pesos para auxiliares administrativas.',
+       '<b>Agente 4:</b> el curso de Power BI queda como formación corta probada para esta brecha.',
+       '<b>Agente 8:</b> Power BI aparece como competencia emergente en los cargos administrativos de Suba.',
+       '<b>Tablero de impacto:</b> suma una postulación, una formación finalizada y una contratación; con estos resultados se pasa a la Fase III.']
+       .map(function(x){return '<div class="meta" style="margin-bottom:4px">· '+x+'</div>'}).join(''); },
+   ver:'tablero', verT:'Ver el tablero de impacto'}
+];
+PINTAR.caso = function(){
+  var h = '';
+  CASO.forEach(function(c,i){
+    var hecho = i < S.caso, actual = i === S.caso;
+    h += '<div class="card" style="'+(i > S.caso ? 'opacity:.55' : '')+(actual ? ';border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)' : '')+'">'
+      + '<div class="hd"><span class="chip '+(hecho?'ok':(actual?'acc':''))+'">Paso '+(i+1)+'</span><h3>'+esc(c.t)+'</h3><span class="meta" style="margin-left:auto">'+esc(c.quien)+'</span></div>'
+      + '<div class="bd stack" style="gap:10px"><p style="font-size:13.5px;line-height:1.55">'+esc(c.d)+'</p>';
+    if(hecho) h += '<div class="note">'+c.res()+'</div><div class="row"><button class="btn sm" data-caso-ver="'+i+'">'+esc(c.verT)+' →</button></div>';
+    if(actual) h += '<div class="row"><button class="btn primary" id="btnCaso">Ejecutar el paso '+(i+1)+'</button></div>';
+    h += '</div></div>';
+  });
+  if(S.caso >= CASO.length) h += '<div class="note brand"><b>Caso completo.</b> Marta recorrió el flujo de punta a punta: registro, orquestación, análisis, coincidencias, Ruta B, Ruta A, seguimiento y medición. Cada paso quedó en la trazabilidad del orquestador.</div>';
+  $('casoPasos').innerHTML = h;
+  $('casoMeta').textContent = Math.min(S.caso, CASO.length) + ' de ' + CASO.length + ' pasos';
+  if($('btnCaso')) $('btnCaso').addEventListener('click', function(){
+    $('btnCaso').disabled = true;
+    etapas($('dCaso'), $('sCaso'), ['el orquestador asigna la tarea', CASO[S.caso].quien.toLowerCase(), 'registrando en la trazabilidad'], function(){
+      CASO[S.caso].hacer(); S.caso++; marcarRuta(); PINTAR.caso();
+      var cards = $('casoPasos').querySelectorAll('.card'), c = cards[Math.min(S.caso, CASO.length)-1];
+      if(c && c.scrollIntoView) c.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'start'});
+    });
+  });
+  Array.prototype.forEach.call($('casoPasos').querySelectorAll('[data-caso-ver]'), function(b){
+    b.addEventListener('click', function(){ if(enSistema(MARTA, PERSONAS)) activar(MARTA); ir(CASO[+b.dataset.casoVer].ver); });
+  });
+};
+$('btnCasoReset').addEventListener('click', function(){
+  S.caso = 0;
+  var i = PERSONAS.indexOf(MARTA); if(i >= 0) PERSONAS.splice(i,1);
+  var j = VACANTES.indexOf(VAC_MARTA); if(j >= 0) VACANTES.splice(j,1);
+  MARTA.comps = COMPS_MARTA.map(function(c){return {id:c.id,niv:c.niv,ev:c.ev}});
+  delete S.est[MARTA.id]; delete S.dec[VAC_MARTA.id+'|'+MARTA.id];
+  S.log = S.log.filter(function(r){ return r.c !== codigo(MARTA) });
+  if(S.persona === MARTA) S.persona = PERSONAS[0];
+  if(S.vacanteSel === VAC_MARTA.id) S.vacanteSel = null;
+  activar(S.persona); $('dCaso').className = 'dot'; $('sCaso').textContent = 'en espera';
+  PINTAR.caso(); marcarRuta();
+});
 
 /* ============ ARRANQUE ============ */
 ir(location.hash.slice(1) || 'inicio');
